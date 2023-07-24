@@ -1,0 +1,127 @@
+**2. It is hypothesized that students in College Algebra skip class less often than students in General Chemistry I; both courses seat 90 students. Data on the total number of absences per section was collected for one fall semester, and is as follows:**
+
+| General Chemistry I | 162 | 140 | 136 | 171 | 106 | 148 |
+|---------------------|-----|-----|-----|-----|-----|-----|
+| **College Algebra** | **158** | **132** | **135** | **187** | **106** | **150** |
+
+```{r}
+m1 <- c(162,140,136,171,106,148)
+m2 <- c(158,132,135,187,106,150)
+
+math <-tibble(m1,m2)
+```
+
+**a. Find the appropriate summary statistics to summarize the data.**
+
+```{r}
+math %>% 
+summarize(mean(m1),
+median(m1),
+sd(m1))
+
+math %>% 
+summarize(mean(m2),
+median(m2),
+sd(m2))
+```
+
+**b. Perform the appropriate *t* test to determine if there are fewer absences in College Algebra. Remember to typeset the hypothesis test results.**
+
+```{r}
+t.test(m2, m1,
+       data = math,
+alternative = "less")
+
+```
+Hypothesis:
+  
+    Ho : Mu_m2 > Mu_m1
+    H1 : Mu_m2 < Mu_m1
+    
+  Test Statistic:
+    to= 0.057323
+    
+  p-value:
+    p-value = 0.5223 > 0.05
+    
+  Conclusion/ Interpretation:
+    Fail to Reject Null Hypothesis. There is not enough sufficient evidence to suggest that there are fewer absences in College Algebra than General Chemistry I.
+    
+    
+**c. Perform the appropriate nonparametric test to determine if there are fewer absences in College Algebra. Remember to typeset the hypothesis test results.**
+
+```{r}
+wilcox.test(m2, m1,
+data = math,
+alternative = "less")
+```
+  Hypothesis:
+  
+    Ho : M_m2 > M_m1
+    H1 : M_m2 < M_m1
+    
+  Test Statistic:
+    to= 16.5
+    
+  p-value:
+    p-value = 0.4363 > 0.05
+    
+  Conclusion/ Interpretation:
+    Fail to Reject Null Hypothesis. There is not enough sufficient evidence to suggest that there are fewer absences in College Algebra than General Chemistry I.
+    
+    
+**d. Construct the necessary graphs / hypothesis tests to assess the assumptions on the *t* test.**
+
+```{r}
+math %>%
+mutate(diff = m2 - m1) %>%
+ggplot(aes(sample = diff)) +
+stat_qq(size=3) +
+stat_qq_line() +
+theme_minimal() +
+xlab("Theoretical") +
+ylab("Sample")
+```
+
+
+**e. State the assumption(s) on the *t* test and provide your assessment based on results in part (d).**
+  Based on my findings, the QQ plot graph shows an approximate 45 degree line, so we can assumed normality between the two groups (General Chemistry I and College Algebra). And based on the t.test, 
+we fail to reject Null Hypothesis because There is not enough sufficient evidence to suggest that there are fewer absences in College Algebra. since the  p-value = 0.5223 > 0.05.
+
+    
+**f. Based on your assessment in part (e), are you going to report the *t* test or the nonparametric test?**
+I will report the t.test since in part (e), we can assume normality between the two groups (General Chemistry I and College Algebra) because the QQ plot shows an approximate 45 degree line. 
+
+    
+**g. Construct a graph to help explain the results from the analysis chosen in part (f).**
+```{r}
+mean <- math %>% summarize(mean = mean(m1))
+
+ggplot(mean, aes(x = 6, y = mean)) +
+  geom_point(color = "red", size = 3) +
+  ylim(range(c(140, 150))) +
+  theme_bw() +
+  labs(x = "Number of Sections", y = "Mean Value", title = "Plot of Means for General Chemistry I")
+
+
+
+
+
+
+
+
+means2 <- math %>% summarize(mean = mean(m2))
+
+ggplot(means2, aes(x = 6, y = mean)) +
+  geom_point(color = "blue", size = 3) +
+  ylim(range(c(140, 150))) +
+  theme_bw() +
+  labs(x = "Number of Sections", y = "Mean Value", title = "Plot of Means for College Algebra")
+```
+Based on the plot of means paragraph for the two groups(General Chemistry I and College Algebra), you can see that the means value is higher for college algebra than the mean value for General Chemistry I. 
+This indicates that there is a higher average absence for students in College Algebra than General Chemistry I.
+    
+**h. Write a brief paragraph describing the results of your analysis. Include summary statistics, results of your chosen hypothesis test from part (f), and the graph from part (g).**
+Based on the t-test, we fail reject the null hypothesis (p-value = 0.5223 > 0.05), saying that there is not enough sufficient evidence to suggest that there are fewer absences in College Algebra 
+than General Chemistry I. The QQ plot assumes normality in the two groups so we would use a parametric test instead of a nonparametric test to report the analysis. The plot of means clearly shows the mean 
+value for College Algebra is higher than General Chemistry I, indicating a higher average absence for students in College Algebra than General Chemistry I.
