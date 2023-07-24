@@ -1,0 +1,141 @@
+```{r setup}
+library(tidyverse)
+library(gsheet)
+```
+
+
+**1. Members of the UWF basketball team decided to see if there was a difference in scoring on free throws during the first and second halves of games. Data was collected over thirteen games and is as follows:**
+
+| 1st Half | 19 | 13 | 7 | 21 | 21 | 13 | 14 | 8 | 11 | 20 | 16 | 9 | 11 |
+|----------|----|----|---|----|----|----|----|---|----|----|----|---|----|
+| **2nd Half** | **17** | **10**  | **8** | **22** | **14** | **9** | **15** | **8** | **12** | **14** | **9**  | **8** | **10** |
+
+<!-- create the dataset needed in the chunk below -->
+```{r}
+
+
+c1 <- c(19,13,7,21,21,13,14,8,11,20,16,9,11)
+c2 <- c(17,10,8,22,14,9,15,8,12,14,9,8,10)
+
+data<-tibble(c1,c2)
+```
+
+**a. Find the appropriate summary statistics to summarize the data.**
+
+```{r}
+data %>% 
+summarize(mean(c1),
+median(c1),
+sd(c1))
+
+data %>% 
+summarize(mean(c2),
+median(c2),
+sd(c2))
+```
+
+**b. Perform the appropriate *t* test to determine if there is a difference in the number of free throws made during the first and second halves of games. Remember to typeset the hypothesis test results.**
+
+```{r}
+
+t.test(c1, c2,
+       data = data,
+paired = TRUE,
+alternative = "two")
+
+
+```
+  Hypothesis:
+  
+    Ho : Mu_c1 equals Mu_c2
+    H1 : Mu_c1 does not equal Mu_c2
+    
+  Test Statistic:
+    to= 2.4411
+    
+  p-value:
+    p-value = 0.03109 < 0.05
+    
+  Conclusion/ Interpretation:
+    Reject Null Hypothesis. There is sufficient evidence to suggest that there is a difference in the number of free throws made during the first and second halves of      games.
+  
+**c. Perform the appropriate nonparametric test to determine if there is a difference in the number of free throws made during the first and second halves of games. Remember to typeset the hypothesis test results.**
+
+```{r}
+wilcox.test(c1, c2,
+data = data,
+paired = TRUE,
+alternative = "two")
+```
+ Hypothesis:
+  
+    Ho : MC1 equals MC2
+    H1 : MC1 does not equal MC2
+    
+  Test Statistic:
+    to= 64
+    
+  p-value:
+    p-value = 0.05128 > 0.05
+    
+  Conclusion/ Interpretation:
+    Fail to Reject Null Hypothesis. There is not sufficient evidence to suggest that there is a difference in the number of free throws made during the first and second halves of games.
+    
+    
+**d. Construct the necessary graphs / hypothesis tests to assess the assumptions on the *t* test.**
+
+```{r}
+data %>%
+mutate(diff = c1 - c2) %>%
+ggplot(aes(sample = diff)) +
+stat_qq(size=3) +
+stat_qq_line() +
+theme_minimal() +
+xlab("Theoretical") +
+ylab("Sample")
+```
+    
+**e. State the assumption(s) on the *t* test and provide your assessment based on results in part (d).**
+
+Based on my findings, the QQ plot graph shows an approximate 45 degree line, so we can assumed normality between the two groups (1st and 2nd half free throws). And based on the t.test, 
+we reject Null Hypothesis because there is sufficient evidence to suggest that there is a difference in the number of free throws made during the first and second halves of games since the p-value = 0.03109 < 0.05.
+
+    
+**f. Based on your assessment in part (e), are you going to report the *t* test or the nonparametric test?**
+I will report the t.test since the QQ plot shows an approximate 45° line so we can assume normality. If we can assume normality, we would report the t.test and not the 
+nonparametric test.
+ 
+
+**g. Construct a graph to help explain the results from the analysis chosen in part (f).**
+
+```{r}
+means <- data %>% summarize(mean = mean(c1))
+
+ggplot(means, aes(x = 13, y = mean)) +
+  geom_point(color = "red", size = 3) +
+  ylim(range(c(0, 20))) +
+  theme_bw() +
+  labs(x = "Number of Free Throws 1st Half", y = "Mean Value", title = "Plot of Means for 1st half of the Game")
+
+
+
+
+
+
+
+
+means2 <- data %>% summarize(mean = mean(c2))
+
+ggplot(means2, aes(x = 13, y = mean)) +
+  geom_point(color = "blue", size = 3) +
+  ylim(range(c(0, 20))) +
+  theme_bw() +
+  labs(x = "Number of Free Throws for 2nd Half", y = "Mean Value", title = "Plot of Means for 2nd half of the Game")
+```
+    Using the plot of means graph you can see that there is a difference mean value for the 1st half and 2nd half. This indicates that there is a difference in free throws in the 1st and 2nd half.
+    
+    
+**h. Write a brief paragraph describing the results of your analysis. Include summary statistics, results of your chosen hypothesis test from part (f), and the graph from part (g).**
+Based on the t-test, we reject the null hypothesis (p-value = 0.03109 < 0.05), saying that there is a difference in the number of free throws made between the 1st and 2nd halves of games. The QQ plot assumes normality in the two groups so we would use a parametric test instead of a nonparametric test to report the analysis. The plot of means clearly shows a difference in the mean values for the first and second halves, indicating a difference in free throws between the two halves of the games.
+
+    
