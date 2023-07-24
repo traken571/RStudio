@@ -1,0 +1,80 @@
+A new 2 hour reading comprehension program has been developed by a local tutoring center. A pilot study of 30 students has been conducted and we have data on a reading comprehension test taken before the program and a separate reading 
+comprehension test taken after the program. Consider the data, found in the following Google Sheet.
+
+```{r}
+data <- as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1ijxX7c6qcFAw-r_mNSxC-Ps5b5njw-WtE4RcxPTySXU/edit?usp=sharing"))
+head(data)
+```
+
+**5. From last lab! Use the appropriate parametric test to determine if the program raises comprehension test averages by at least 5 points. Test at the $\alpha=0.05$ level. Remember to typeset the results.**
+
+```{r}
+t.test(data$Post - data$Pre, mu=5, alternative = "greater")
+```
+- **Hypotheses**
+
+    -   $H_0:mu [$less or equal to$] 5$
+    -   $H_1:mu [$greater or equal to$] 5$
+
+- **Test Statistic and *p*-Value**
+
+    -   $t_0 = -0.37504$
+    -   $p = 0.6455 > 0.005$
+
+- **Rejection Region**
+
+    - Reject $H_0$ if $p < \alpha$; $alpha = 0.05$.
+
+- **Conclusion/Interpretation**
+
+    - Fail to reject null hypothesis at the alpha = 0.05 level since p-value > 0.05.. There is not enough evidence to suggest that the program raises comprehension test averages by at least 5 points
+    
+**6. Use the appropriate nonparametric test to determine if the program raises comprehension test averages by at least 5 points. Test at the $\alpha=0.05$ level. Remember to typeset the results.**
+
+```{r}
+
+wilcox.test(data$Post - data$Pre, mu=5, alternative = "greater")
+
+```
+Hypotheses
+
+\(H_0: \ \mu_{\text{Post}} [\text{-}] \mu_{\text{Pre}} [\text{= 5}]\)
+
+\(H_1: \ \mu_{\text{Post}} [\text{-}] \mu_{\text{Pre}} [\text{≠ 5}]\)
+
+Test Statistic and p-Value
+
+\(T_0 = \text{124.5}\)
+
+\(p = \text{.91}\)
+
+Rejection Region
+
+Reject \(H_0\) if \(p=0.9055 < \alpha\); \(\alpha = \text{.05}\).
+
+Conclusion/Interpretation
+
+Fail to reject null hypothesis at the alpha = 0.05 level. There is not enough evidence to suggest that the program raises comprehension test averages by at least 5 points.
+
+**7. Assess the assumption(s) associated with the test in question 5. In your assessment, determine (and state!) if the parametric or nonparametric test should be reported.**
+
+```{r}
+data %>%
+mutate(diff = Pre - Post) %>%
+ggplot(aes(sample = diff)) +
+stat_qq(size=3) +
+stat_qq_line() +
+theme_minimal() +
+xlab("Theoretical") +
+ylab("Sample")
+
+
+
+```
+Based on my findings, I believe we should use the parametric test since the QQ plot graph shows an approximate 45 degree line which means it is normally distributed.
+
+**8. Write a brief paragraph explaining your findings to management, based on the test chosen in question 7.**
+
+Based the test chosen in question 7, we would use the parametric test to report since the QQ plot graph shows the data to be normally distributed. And based on the parametric T-test, we failed to reject the null hypothesis which stats that there is not enough evidence to suggest that the program raises comprehension test averages by at least 5 points because pvalue= 0.9356 is greater than alpha=0.05 level. The parametric test also stats that the difference in means is only 3.8.
+
+
