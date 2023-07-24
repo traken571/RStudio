@@ -1,0 +1,87 @@
+```{r setup}
+library(tidyverse)
+library(gsheet)
+```
+
+A large credit union awards quarterly bonuses to its employees. To ensure fairness across departments, data on the bonuses are regularly reviewed for equality. 
+Consider the data in the following Google Sheet, which includes the bonus percentage for each employee in two departments.
+
+```{r}
+data <- as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1q0Ouhr6hGBDp-5oyQuYGcsWTLrsayywVHJS7o17Sm6Y/edit?usp=sharing"))
+head(data)
+table(data$Department)
+```
+
+**1. From last lab! Use the appropriate parametric test to determine if the two departments are given different bonus amounts. Test at the $\alpha=0.01$ level. Remember to typeset the results.**
+
+```{r}
+t.test(Bonus ~ Department, data=data, alternative = "two")
+
+
+```
+Reject Null Hypothesis at the alpha = 0.01. There is sufficient evidence to suggest the two departments are given different bonus amounts
+
+**2. Use the appropriate nonparametric test to determine if the two departments are given different bonus amounts. Test at the $\alpha=0.01$ level. Remember to typeset the results.**
+
+```{r}
+wilcox.test(Bonus ~ Department,
+data = data,
+alternative = "two",
+paired = FALSE)
+
+
+```
+Hypotheses
+
+\(H_0: \ \mu_{\text{Credit}} [\text{=}] \mu_{\text{Mortgage}}\)
+
+\(H_1: \ \mu_{\text{Credit}} [\text{≠}] \mu_{\text{Mortgage}}\)
+
+Test Statistic and p-Value
+
+\(T_0 = \text{683}\)
+\(p = \text{0.0001526}\)
+
+Rejection Region
+
+Reject \(H_0\) if \(p < \alpha\); \(\alpha = \text{.01}\).
+
+Conclusion/Interpretation
+
+Reject \(H_0\) at the alpha = 0.01. There is sufficient evidence to suggest the two departments are given different bonuses.
+
+
+
+**3. Assess the assumption(s) associated with the test in question 1. In your assessment, determine (and state!) if the parametric or nonparametric test should be reported.**
+
+```{r}
+
+data %>%
+filter(Department == "Mortgage") %>%
+ggplot(aes(sample = Bonus)) +
+stat_qq(size=3) +
+stat_qq_line() +
+theme_minimal() +
+xlab("Theoretical") +
+ylab("Sample")
+
+data %>%
+filter(Department == "Credit") %>%
+ggplot(aes(sample = Bonus)) +
+stat_qq(size=3) +
+stat_qq_line() +
+theme_minimal() +
+xlab("Theoretical") +
+ylab("Sample")
+
+
+```
+For the QQ plot the bonuses given in the Mortgage department are normally distributed. 
+While the bonuses given in the Credit department are not normally distributed because of the outliers in the graph. 
+Because of this, the nonparametric test should be reported. 
+
+**4. Write a brief paragraph explaining your findings to management, based on the test chosen in question 3.**
+
+For the QQ plot it shows that the bonuses in the Mortgage department are normally distributed while the the bonuses given in the Credit 
+department are not normally distributed because of the outliers in the graph. And based on the nonparametric test, we reject the null hypothesis which 
+stats that there is sufficient evidence to suggest the two departments are given different bonus amounts since pvalue = 0.0001526 is less than alpha=0.01 level.
