@@ -1,0 +1,193 @@
+library(tidyverse)
+library(gsheet)
+install.packages("DescTools",repos = "http://cran.us.r-project.org")
+library(DescTools)
+
+An agricultural researcher investigated two new herbicides and their effects on crop yields of tomatoes, which can be demolished by the tomato hornworm in mere hours. There were three areas for the experiment: an area for herbicide A, an area for herbicide B, and an area for no herbicide at all (control). At the end of the growing season, the yields (in bushels per acre) were measured and are available in the following Google Sheet.
+
+data <- as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1CFyuuWy-4YmVU3wkYuC8Uf3xW3qkpCnpF468NjBAhbY/edit#gid=0"))
+
+1. Construct the 95% confidence interval for the average yield for each group (A, B, control).
+
+t.test(data$Herbicide1, conf.level =0.95)
+
+
+    One Sample t-test
+
+data:  data$Herbicide1
+t = 55.258, df = 29, p-value < 2.2e-16
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ 82.12035 88.43299
+sample estimates:
+mean of x 
+ 85.27667 
+t.test(data$Herbicide2, conf.level =0.95)
+
+
+    One Sample t-test
+
+data:  data$Herbicide2
+t = 96.613, df = 29, p-value < 2.2e-16
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ 88.33621 92.15712
+sample estimates:
+mean of x 
+ 90.24667 
+t.test(data$Control, conf.level =0.95)
+
+
+    One Sample t-test
+
+data:  data$Control
+t = 64.899, df = 29, p-value < 2.2e-16
+alternative hypothesis: true mean is not equal to 0
+95 percent confidence interval:
+ 84.66827 90.17840
+sample estimates:
+mean of x 
+ 87.42333 
+The 95% confidence interval for the average yield for Herbicide1 is ( 82.12, 88.43). The 95% confidence interval for the average yield for Herbicide2 is (88.34, 92.16). The 95% confidence interval for the average yield for the Control is (84.69, 90.18).
+
+2. Challenge! (…but required!) Construct a single graph to display all confidence intervals.
+
+ci <- data.frame(
+  Group = c("Herbicide1", "Herbicide2", "Control"),
+  Lower = c(82.12, 88.34, 84.69),
+  Upper = c(88.43, 92.16, 90.18)
+)
+
+
+ci %>% ggplot(aes(x=as.factor(Group))) +
+geom_boxplot() +
+  geom_errorbar(aes(ymin = Lower, ymax = Upper), width = 0.6) +
+labs(x = "Groups",
+y = "The 95% confidence interval for the average yield") +
+  ylim(75, 100) +
+theme_bw()
+
+
+
+3. Challenge! (… but required!) Why should we be cautious when using the individual CIs found in question 1 and displayed in question 2 to directly compare the three groups?
+
+We should be cautious when we compare the three groups using the CIs because even though they overlap with each other it doesn’t mean that there is a significant difference between them.
+
+4. Use the appropriate hypothesis test to show that there is a difference in the average yield between the three groups. Test at the 
+ level. Remember to typeset the results.
+
+long <- data %>%
+pivot_longer(cols = c("Herbicide1", "Herbicide2", "Control"),
+names_to = "Groups",
+values_to = "Cropyields")
+
+m1 <- aov(Cropyields~Groups,data=long)
+summary(m1)
+
+            Df Sum Sq Mean Sq F value Pr(>F)  
+Groups       2    373  186.40   3.677 0.0293 *
+Residuals   87   4410   50.69                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Hypotheses
+
+
+H1: at least one is different
+
+Test Statistic and p-Value
+
+
+
+Rejection Region
+
+Reject 
+ if p = 0.0293 < α; α = 0.05
+
+Conclusion/Interpretation
+
+Reject 
+ at the 
+ level. There is sufficient evidence to suggest that there is a difference in the average yield between the three groups.
+
+5. Construct and test the following contrasts for the following comparisons:
+
+5a. Herbicide A vs. Herbicide B. Test at the 
+ level. Remember to state the final conclusion.
+
+long$Groups <- as.factor(long$Groups)
+contrasts(long$Groups)
+
+           Herbicide1 Herbicide2
+Control             0          0
+Herbicide1          1          0
+Herbicide2          0          1
+contrasts(long$Groups)<- cbind(c(0,-1,1))
+
+m1 <- aov(Cropyields ~ Groups, data = long)
+summary.aov(m1, split=list(Groups=list("Herbicide 1 vs. Herbicide 2."=1)))
+
+                                       Df Sum Sq Mean Sq F value  Pr(>F)   
+Groups                                  2    373   186.4   3.677 0.02930 * 
+  Groups: Herbicide 1 vs. Herbicide 2.  1    371   370.5   7.310 0.00825 **
+Residuals                              87   4410    50.7                   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+There is a difference in crop yields when comparing groups, Herbicide 1 and Herbicide 2 (p = 0.00825).
+
+5b. Herbicide A and Herbicide B vs. Control. Test at the 
+ level. Remember to state the final conclusion.
+
+long$Groups <- as.factor(long$Groups)
+contrasts(long$Groups)
+
+           [,1]       [,2]
+Control       0 -0.8164966
+Herbicide1   -1  0.4082483
+Herbicide2    1  0.4082483
+contrasts(long$Groups)<- cbind(c(-1,0.5,0.5))
+
+m1 <- aov(Cropyields ~ Groups, data = long)
+summary.aov(m1, split=list(Groups=list("Herbicide 1 vs. Herbicide 2 vs Control."=1)))
+
+                                                  Df Sum Sq Mean Sq F value
+Groups                                             2    373  186.40   3.677
+  Groups: Herbicide 1 vs. Herbicide 2 vs Control.  1      2    2.29   0.045
+Residuals                                         87   4410   50.69        
+                                                  Pr(>F)  
+Groups                                            0.0293 *
+  Groups: Herbicide 1 vs. Herbicide 2 vs Control. 0.8322  
+Residuals                                                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+There is not a difference in ratings when comparing the groups, Herbicide 1 and Herbicide 2 together against the control group (p = 0.00825).
+
+6. Use the appropriate posthoc test to perform all pairwise comparisons of yield. Test at the 
+ level. Remember to state the final conclusion (i.e., the pairwise differences).
+
+round((TukeyHSD(m1)$Groups),3)
+
+                        diff    lwr   upr p adj
+Herbicide1-Control    -2.147 -6.530 2.237 0.476
+Herbicide2-Control     2.823 -1.560 7.207 0.279
+Herbicide2-Herbicide1  4.970  0.587 9.353 0.022
+There is a difference between the groups, Herbicide 1 and Herbicide 2 (p=0.022).
+
+7. Use the appropriate posthoc test to only compare the individual herbicides to the control. Test at the 
+ level. Remember to state the final conclusion (i.e., the pairwise differences).
+
+DunnettTest(x=long$Cropyields,
+            g=long$Groups,
+            control = "Control")
+
+
+  Dunnett's test for comparing several treatments with a control :  
+    95% family-wise confidence level
+
+$Control
+                        diff    lwr.ci   upr.ci   pval    
+Herbicide1-Control -2.146667 -6.280237 1.986904 0.4012    
+Herbicide2-Control  2.823333 -1.310237 6.956904 0.2209    
+
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Thus, non of the groups ( Herbicide A and Herbicide B) are significantly different from the control group.
