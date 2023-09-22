@@ -1,0 +1,263 @@
+1. A large retail lawn care dealer currently provides a 2-year warranty on all lawn mowers sold at its stores. A new employee suggested that the dealer could save money by just not offering the warranty. To evaluate this suggestion, the dealer randomly decides whether or not to offer the warranty to the next 50 customers who enter the store and express an interest in purchasing a lawnmower. Out of the 25 customers offered the warranty, 10 purchased a mower as compared to 4 of 25 not offered the warranty. Use the appropriate hypothesis test - and justify why you are using it - to determine if offering the warranty changes the proportion of customers who will purchase a mower. Test at the 
+ level.
+
+prop.test(x = c(10, 4),
+n = c(25, 25),
+alternative = "two"
+,correct=FALSE)
+
+
+    2-sample test for equality of proportions without continuity correction
+
+data:  c(10, 4) out of c(25, 25)
+X-squared = 3.5714, df = 1, p-value = 0.05878
+alternative hypothesis: two.sided
+95 percent confidence interval:
+ 0.0001465295 0.4798534705
+sample estimates:
+prop 1 prop 2 
+  0.40   0.16 
+Hypotheses
+
+H0 : offering the warranty does not changes the proportion of customers who will purchase a mower
+
+H1 : offering the warranty changes the proportion of customers who will purchase a mower
+
+Test Statistic and p-Value
+
+χ0^ 2 = 3.5714
+
+p = 0.05878
+
+Rejection Region
+
+Reject H0 if p < α ; α = 0.05
+
+Conclusion/Interpretation
+
+Fail to reject H0 α = 0.05 at the level. There is not sufficient evidence to suggest that offering the warranty changes the proportion of customers who will purchase a mower.
+
+I used Bernoulli Experiments: Two Populations test because this test lets you compare the sucesses for the two populations with warranty and without warranty.
+
+2. The data in the following table document the starting positions of the winning horses in 144 races. The starting position listed as 1 is the position of the horse in the starting gate closest to the inside rail of the track, and position 8 is farthest from the rail. Racing officials contend that starting position has no effect on the chance of winning the race.
+
+Starting Position	No. Winners
+1	29
+2	19
+3	18
+4	25
+5	17
+6	10
+7	15
+8	11
+Do the data support the racing officials’ contention? Test at the 
+ level.
+
+observed_table <- matrix(c(1, 29, 2, 19, 3, 18, 4, 25,
+                     5, 17, 6, 10, 7, 15, 8, 11), 
+                         nrow = 8, ncol = 2, byrow = T)
+fisher.test(observed_table,workspace = 2e8)  
+
+
+    Fisher's Exact Test for Count Data
+
+data:  observed_table
+p-value = 0.006541
+alternative hypothesis: two.sided
+Hypotheses
+
+H0 : Starting position has no effect on the chance of winning the race
+
+H1 : Starting position has effect on the chance of winning the race
+
+p-Value
+
+p = 0.006541
+
+Rejection Region
+
+Reject H0 if p < α ; α = 0.05
+
+Conclusion/Interpretation
+
+Reject H0 α = 0.05 at the level. There is not sufficient evidence to suggest that the starting position has no effect on the chance of winning the race.
+
+3. The fire department in a large city is examining its promotion policy to assess if there is the potential for an age discrimination lawsuit.
+
+3a. Consider the following data:
+
+Under 30	30–39	40–49	50 or Older
+Promoted	9	29	34	12
+Not Promoted	41	39	46	38
+Is there evidence to suggest there is age discrimination? Test at the 
+ level.
+
+observed_table2 <- matrix(c(9, 29, 34, 12, 41, 39, 46, 38
+                     ), 
+                         nrow = 2, ncol = 4, byrow = T)
+chisq.test(observed_table2)  
+
+
+    Pearson's Chi-squared test
+
+data:  observed_table2
+X-squared = 12.796, df = 3, p-value = 0.0051
+Hypotheses
+
+H0 : Promotion outcome does not depends on age group.
+
+H1 : Promotion outcome does depends on age group.
+
+Test Statistic and p-Value
+
+χ0^ 2 = 12.796
+
+p = 0.0051
+
+Rejection Region
+
+Reject H0 if p < α ; α = 0.05
+
+Conclusion/Interpretation
+
+Reject H0 α = 0.05 at the level. There is sufficient evidence to suggest that the promotion outcome does depends on age group.
+
+3b. Consider the following data:
+
+39 or Younger	40 or Older
+Promoted	38	46
+Not Promoted	80	84
+Is there evidence to suggest there is age discrimination? Test at the 
+ level.
+
+observed_table <- matrix(c(38, 46,
+                           80, 84), 
+                         nrow = 2, ncol = 2, byrow = T)
+fisher.test(observed_table)
+
+
+    Fisher's Exact Test for Count Data
+
+data:  observed_table
+p-value = 0.6871
+alternative hypothesis: true odds ratio is not equal to 1
+95 percent confidence interval:
+ 0.4938984 1.5197908
+sample estimates:
+odds ratio 
+ 0.8678904 
+Hypotheses
+
+H0 : Promotion outcome does not depends on age group.
+
+H1 : Promotion outcome does depends on age group.
+
+p-Value
+
+p = 0.6871
+
+Rejection Region
+
+Reject H0 if p < α ; α = 0.05
+
+Conclusion/Interpretation
+
+Fail to reject H0 α = 0.05 at the level. There is sufficient evidence to suggest that the promotion outcome does depends on age group.
+
+3c. Construct (separate) graphs to represent the data in 3a and 3b.
+
+#Graph for 3a
+
+library(ggplot2)
+library(tidyverse)
+
+── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.0     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ lubridate 1.9.2     ✔ tibble    3.2.1
+✔ purrr     1.0.1     ✔ tidyr     1.3.0
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (<http://conflicted.r-lib.org/>) to force all conflicts to become errors
+library(gsheet)
+promotion <- as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1_yVH2try2e6qpl01y0XGRHOo7X_THe4vCYFVAya8DSw/edit?usp=sharing"))
+
+promotion2 <- promotion %>%
+group_by(AgeGroup, Promotion) %>%
+ungroup()
+
+promotion2 %>% ggplot(aes(x = as.factor(AgeGroup), y = NumberofPromotions, fill = Promotion)) +
+geom_bar(stat = "identity", position = 'dodge') +
+labs(x = "AgeGroup",
+y = "Number of Promotions",
+fill = "Promotion") +
+scale_fill_manual(labels = c("Promoted", "Not_Promoted"),
+values = c("#003865", "#8DC8E8")) +
+theme_bw()
+
+
+
+#Graph for 3b
+promotion3 <- as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1vNzSmFdAF37R3Q_x8ZZVxdrGsjQ6X2ESW6fe9xc-4L4/edit#gid=0"))
+
+promotion4 <- promotion3 %>%
+group_by(AgeGroup, Promotion) %>%
+ungroup()
+
+promotion4 %>% ggplot(aes(x = as.factor(AgeGroup), y = NumberofPromotions, fill = Promotion)) +
+geom_bar(stat = "identity", position = 'dodge') +
+labs(x = "AgeGroup",
+y = "Number of Promotions",
+fill = "Promotion") +
+scale_fill_manual(labels = c("Promoted", "Not_Promoted"),
+values = c("#00FF00", "#FFC0CB")) +
+theme_bw()
+
+
+
+3d. What are you taking away from this exercise?
+
+If there is a bigger sample size, that means the pvalue would be smaller which is more likely to reject the null hypothesis and if the sample size is smaller, the pvalue would be bigger which would reduce the chances to reject the null hypothesis.
+
+4. Challenge (and required)! A study examining bomb hits in South London during World War II is documented in the following table. The bomb hits were recorded in the 576 grids in a map of a region in South London. The study contended that certain areas were less likely to be hit with a bomb because of certain geographical features. If the bomb hits were purely random, a Poisson model would produce the number of hits per grid.
+
+No. Bomb Hits	No. Grids
+0	229
+1	211
+2	93
+3	35
+4	7
+5	0
+6	0
+7	1
+Does the distribution of bomb hits appear to be random across this region of South London?
+
+counts <- c(229, 211, 93, 35, 7,0,0,1)
+probs <- c(0.125, 0.125, 0.125, 0.125, 0.125,0.125,0.125,0.125)
+chisq.test(counts, p = probs)
+
+
+    Chi-squared test for given probabilities
+
+data:  counts
+X-squared = 908.53, df = 7, p-value < 2.2e-16
+Hypotheses
+
+H0 : The data follows a uniform distribution
+
+H1 : The data does not follow a uniform distribution
+
+Test Statistic and p-Value
+
+X0^2 = 908.53
+
+p< 2.2e-16
+
+Rejection Region
+
+Reject H0 if p < α ; α = 0.05
+
+Conclusion/Interpretation
+
+Reject H0 α = 0.05 at the level. There is sufficient evidence to suggest that the data does not follow a uniform distribution.
