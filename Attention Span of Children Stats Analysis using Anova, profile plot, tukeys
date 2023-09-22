@@ -1,0 +1,392 @@
+library(tidyverse)
+library(gsheet)
+
+A large advertising firm specializes in creating television commercials for children’s products. The firm wants to design a study to investigate factors that may affect the lengths of time a commercial is able to hold a child’s attention. A preliminary study determines that two factors that may be important are the age of the child and the type of product being advertised. The firm wants to determine whether there were large differences in the mean length of time that the commercial is able to hold the child’s attention depending on these two factors. If there proves to be a difference, the firm would then attempt to determine new types of commercials depending on the product and targeted age group.
+
+Three age groups are used:
+
+A1: 5-6 years,
+A2: 7-8 years,
+A3: 9-10 years
+The types of products selected are:
+
+P1: breakfast cereals,
+P2: video games
+A group of 30 children is recruited in each age group, and 10 are randomly assigned to watch a 60-second commercial for each of the two products. Researchers record their attention spans during the viewing of the commercial. The data are given here: Google Sheet.
+
+hello <-as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1bDLrVV1uFYOipKaziQpUMvrZ1orvxxeD_cyOIvDkskU/edit?usp=sharing"))
+
+1. Construct the two-way ANOVA table.
+
+m <- aov(AttentionSpans ~ as.factor(Product) + as.factor(AgeGroup) + as.factor(Product):as.factor(AgeGroup),
+data = hello)
+summary(m)
+
+                                       Df Sum Sq Mean Sq F value Pr(>F)    
+as.factor(Product)                      1   2018  2018.4  13.720 0.0005 ***
+as.factor(AgeGroup)                     2   1303   651.5   4.429 0.0166 *  
+as.factor(Product):as.factor(AgeGroup)  2   1384   692.2   4.705 0.0131 *  
+Residuals                              54   7944   147.1                   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+2. Use the appropriate hypothesis test to show that the interaction between age and product is significant. Test at the 
+ level. Remember to typeset the results.
+
+summary(m)
+
+                                       Df Sum Sq Mean Sq F value Pr(>F)    
+as.factor(Product)                      1   2018  2018.4  13.720 0.0005 ***
+as.factor(AgeGroup)                     2   1303   651.5   4.429 0.0166 *  
+as.factor(Product):as.factor(AgeGroup)  2   1384   692.2   4.705 0.0131 *  
+Residuals                              54   7944   147.1                   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Hypotheses
+
+H0: There is not a significant interaction between age and product
+
+H1: There is a significant interaction between age and product
+
+Test Statistic and p-Value
+
+
+
+Rejection Region
+
+Reject 
+ if 
+; 
+.
+
+Conclusion/Interpretation
+
+Reject 
+ at the 
+ level. There is sufficient evidence to suggest there is a significant interaction between age and product.
+
+3. Construct the profile plot for this data.
+
+hello <-as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1bDLrVV1uFYOipKaziQpUMvrZ1orvxxeD_cyOIvDkskU/edit?usp=sharing"))
+
+means <- hello %>%
+group_by(Product, AgeGroup) %>%
+summarize(mean = mean(`AttentionSpans`)) %>%
+ungroup()
+
+head(means)
+
+# A tibble: 6 × 3
+  Product           AgeGroup  mean
+  <chr>             <chr>    <dbl>
+1 breakfast cereals A1        22.9
+2 breakfast cereals A2        19.6
+3 breakfast cereals A3        21.9
+4 video games       A1        23.1
+5 video games       A2        30.5
+6 video games       A3        45.6
+A <- means %>% filter(Product == "breakfast cereals") %>% rename(A = mean) %>% select(-Product)
+B <- means %>% filter(Product == "video games") %>% rename(B = mean) %>% select(-Product)
+
+graph <- full_join(A, B, by = "AgeGroup")
+graph <- graph %>% mutate(AgeGroup = as.factor(AgeGroup))
+
+
+graph %>%
+ggplot(aes(x = `AgeGroup`, group = 1)) +
+geom_line(aes(y = A), color = "pink") +
+geom_line(aes(y = B), color = "purple") +
+geom_text(aes(x = "A3"
+, y = 22.5, label = "breakfast cereals")) +
+geom_text(aes(x = "A3"
+, y = 47, label = "video games")) +
+xlab("Age Grop") +
+ylab("Average Attention Span") +
+
+theme_bw()
+
+
+
+4. (Challenge! …but required!) Perform Tukey’s test to determine which treatment groups are significantly different. Test at the 
+ level. Remember to state the final conclusion (i.e., the pairwise differences).
+
+m1 <- aov(AttentionSpans ~ as.factor(Product) + as.factor(AgeGroup), data = hello)
+summary(m1)
+
+                    Df Sum Sq Mean Sq F value   Pr(>F)    
+as.factor(Product)   1   2018  2018.4  12.117 0.000976 ***
+as.factor(AgeGroup)  2   1303   651.5   3.911 0.025705 *  
+Residuals           56   9328   166.6                     
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+TukeyHSD(m, which = "as.factor(Product)")
+
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = AttentionSpans ~ as.factor(Product) + as.factor(AgeGroup) + as.factor(Product):as.factor(AgeGroup), data = hello)
+
+$`as.factor(Product)`
+                              diff      lwr      upr     p adj
+video games-breakfast cereals 11.6 5.321364 17.87864 0.0005001
+TukeyHSD(m, which = "as.factor(AgeGroup)")
+
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = AttentionSpans ~ as.factor(Product) + as.factor(AgeGroup) + as.factor(Product):as.factor(AgeGroup), data = hello)
+
+$`as.factor(AgeGroup)`
+       diff        lwr      upr     p adj
+A2-A1  2.05 -7.1935093 11.29351 0.8547531
+A3-A1 10.75  1.5064907 19.99351 0.0189413
+A3-A2  8.70 -0.5435093 17.94351 0.0690623
+-The attention span for video games is significantly different from breakfast cereal(p = 0.0005001).
+
+-Attention span for age group A1 and A3 are significantly different (p=0.0189413). Attention span for age group A2 is not significantly different from A1(p=0.8547531). Attention span for age group A3 is not significantly different from A2 (p=0.0690623).
+
+5. Graphically assess the ANOVA assumptions – is ANOVA appropriate here?
+
+almost_sas <- function(aov.results){
+aov_residuals <- residuals(aov.results)
+par(mfrow=c(2,2))
+plot(aov.results, which=1)
+hist(aov_residuals)
+plot(aov.results, which=2)
+}
+almost_sas(m)
+
+
+
+ANOVA is not appropriate here because the length of the lines in the scatterplot aren’t equal and the histogram isn’t a mound shape or symmetrical.
+
+A horticulturalist at a large research institution designs a study to evaluate the effect on tomato yields of water loss due to transpiration. She decides to examine four levels of shading of the tomato plants at three stages of the tomato plant’s development. The four levels of shading (0, 25%, 50%, and 75%) were selected to reduce the solar exposure of the plants. The shading remained in place for 20 days during the early, middle, and late phases of the tomato plants’ growth. There were four plots of tomatoes randomly assigned to each of the combinations of shading and growth stage. At the end of the study, the yields per plot in pounds were recorded. The data are given here: Google Sheet.
+
+data1 <-as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1kUxXje3cTl_PZFQcg8FvESo34UuGNwm1GrKGc4HN0_A/edit?usp=sharing"))
+
+6. Construct the two-way ANOVA table.
+
+m3 <- aov(`Yield` ~ as.factor(`Phase`) + as.factor(`PctShade`) + as.factor(`Phase`):as.factor(`PctShade`),
+data = data1)
+summary(m3)
+
+                                     Df Sum Sq Mean Sq F value Pr(>F)  
+as.factor(Phase)                      2  497.5  248.74   2.748 0.0813 .
+as.factor(PctShade)                   3   99.8   33.26   0.367 0.7770  
+as.factor(Phase):as.factor(PctShade)  6  891.8  148.64   1.642 0.1726  
+Residuals                            28 2534.3   90.51                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+7. Use the appropriate hypothesis test to show that the interaction between shading and phase of growth is not significant. Test at the 
+ level. Remember to typeset your results.
+
+summary(m3)
+
+                                     Df Sum Sq Mean Sq F value Pr(>F)  
+as.factor(Phase)                      2  497.5  248.74   2.748 0.0813 .
+as.factor(PctShade)                   3   99.8   33.26   0.367 0.7770  
+as.factor(Phase):as.factor(PctShade)  6  891.8  148.64   1.642 0.1726  
+Residuals                            28 2534.3   90.51                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Hypotheses
+
+H0: There is not a significant interaction between shading and phase of growth
+
+H1: There is a significant interaction between shading and phase of growth
+
+Test Statistic and p-Value
+
+$F_A = 1.642 $
+
+$p = 0.1726 $
+
+Rejection Region
+
+Reject 
+ if 
+; 
+.
+
+Conclusion/Interpretation
+
+Fail to Reject 
+ at the 
+ level. There is not sufficient evidence to suggest there is not a significant interaction shading and phase of growth.
+
+8. Remove the interaction term and reconstruct the two-way ANOVA table.
+
+m4 <- aov(`Yield` ~ as.factor(`Phase`) + as.factor(`PctShade`),
+data = data1)
+summary(m4)
+
+                    Df Sum Sq Mean Sq F value Pr(>F)  
+as.factor(Phase)     2    497  248.74   2.468 0.0998 .
+as.factor(PctShade)  3    100   33.26   0.330 0.8036  
+Residuals           34   3426  100.77                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+9. Use the appropriate hypothesis test to determine if there is a main effect of shading. Test at the 
+ level. Remember to typeset your results.
+
+summary(m4)
+
+                    Df Sum Sq Mean Sq F value Pr(>F)  
+as.factor(Phase)     2    497  248.74   2.468 0.0998 .
+as.factor(PctShade)  3    100   33.26   0.330 0.8036  
+Residuals           34   3426  100.77                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Hypotheses
+
+H0: There is not a main effect of shading.
+
+H1: There is a main effect of shading.
+
+Test Statistic and p-Value
+
+$F_A = 0.330 $
+
+$p = 0.8036 $
+
+Rejection Region
+
+Reject 
+ if 
+; 
+.
+
+Conclusion/Interpretation
+
+Fail to Reject 
+ at the 
+ level. There is not sufficient evidence to suggest there is a main effect of shading.
+
+10. Use the appropriate hypothesis test to determine if there is a main effect of phase of growth. Test at the 
+ level. Remember to typeset your results.
+
+summary(m4)
+
+                    Df Sum Sq Mean Sq F value Pr(>F)  
+as.factor(Phase)     2    497  248.74   2.468 0.0998 .
+as.factor(PctShade)  3    100   33.26   0.330 0.8036  
+Residuals           34   3426  100.77                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Hypotheses
+
+H0: There is not a main effect of phase of growth.
+
+H1: There is a main effect of phase of growth.
+
+Test Statistic and p-Value
+
+$F_A = 2.468 $
+
+$p = 0.0998 $
+
+Rejection Region
+
+Reject 
+ if 
+; 
+.
+
+Conclusion/Interpretation
+
+Reject 
+ at the 
+ level. There is sufficient evidence to suggest there is a main effect of phase of growth.
+
+11. (Challenge! …but required!) Construct the profile plot for this data.
+
+means2 <- data1 %>%
+group_by(Phase, PctShade) %>%
+summarize(mean = mean(`Yield`)) %>%
+ungroup()
+
+head(means2)
+
+# A tibble: 6 × 3
+  Phase PctShade  mean
+  <chr>    <dbl> <dbl>
+1 Early        0  60.7
+2 Early       25  47.8
+3 Early       50  62.4
+4 Early       75  55.0
+5 Late         0  60.9
+6 Late        25  64.6
+A <- means2 %>% filter(Phase == "Early") %>% rename(A = mean) %>% select(-Phase)
+B <- means2 %>% filter(Phase == "Middle") %>% rename(B = mean) %>% select(-Phase)
+C <- means2 %>% filter(Phase == "Late") %>% rename(c = mean) %>% select(-Phase)
+
+graph <- full_join(A, B, by = "PctShade")
+graph <- full_join(graph, C, by = "PctShade")
+graph <- graph %>% mutate(PctShade = as.factor(PctShade))
+
+
+graph %>%
+ggplot(aes(x = `PctShade`, group = 1)) +
+geom_line(aes(y = A), color = "pink") +
+geom_line(aes(y = B), color = "purple") +
+geom_line(aes(y = c), color = "blue")+
+geom_text(aes(x = "75", y = 55, label = "Early Phase")) +
+geom_text(aes(x = "75", y = 67, label = "Middle Phase")) +
+geom_text(aes(x = "75", y = 63, label = "Late Phase")) +
+xlab("Percentage of Shade") +
+ylab("Tomato Yield per Plot") +
+
+theme_bw()
+
+
+
+12. If there is a main effect of shading, perform Tukey’s test to determine which levels of shading are significantly different. Test at the 
+ level. Remember to state the final conclusion (i.e., the pairwise differences).
+
+TukeyHSD(m3, which = "as.factor(PctShade)")
+
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = Yield ~ as.factor(Phase) + as.factor(PctShade) + as.factor(Phase):as.factor(PctShade), data = data1)
+
+$`as.factor(PctShade)`
+            diff        lwr      upr     p adj
+25-0  -0.3016262 -11.976749 11.37350 0.9998709
+50-0   0.8468232 -10.502694 12.19634 0.9969360
+75-0   3.7055594  -7.643957 15.05508 0.8093039
+50-25  1.1484493 -10.786473 13.08337 0.9935019
+75-25  4.0071856  -7.927737 15.94211 0.7961513
+75-50  2.8587363  -8.757864 14.47534 0.9068076
+There are no levels of shading that are significantly different since all since the lowest p=0.7961513 is greater at the alpha = 0.10 level.
+
+13. If there is a main effect of phase of growth, perform Tukey’s test to determine which phases of growth are significantly different. Test at the 
+ level. Remember to state the final conclusion (i.e., the pairwise differences).
+
+TukeyHSD(m3, which = "as.factor(Phase)")
+
+  Tukey multiple comparisons of means
+    95% family-wise confidence level
+
+Fit: aov(formula = Yield ~ as.factor(Phase) + as.factor(PctShade) + as.factor(Phase):as.factor(PctShade), data = data1)
+
+$`as.factor(Phase)`
+                  diff        lwr       upr     p adj
+Late-Early    8.325824  -0.741084 17.392732 0.0765839
+Middle-Early  2.461538  -6.771749 11.694826 0.7884845
+Middle-Late  -5.864286 -14.931194  3.202622 0.2621753
+Only the Late and Early phases are significantly different (p=0.0765839). There is no significant difference between the Middle and Early phases (p=0.7884845) and there is also no significant difference between the Middle and Late phases(p=0.2621753).
+
+14. Graphically assess the ANOVA assumptions – is ANOVA appropriate here?
+
+almost_sas <- function(aov.results){
+aov_residuals <- residuals(aov.results)
+par(mfrow=c(2,2))
+plot(aov.results, which=1)
+hist(aov_residuals)
+plot(aov.results, which=2)
+}
+almost_sas(m3)
+
+
+
+ANOVA is not appropriate here because the length of the lines in the scatterplot aren’t equal and the histogram isn’t a mound shape or symmetrical.
