@@ -1,0 +1,136 @@
+library(tidyverse)
+library(gsheet)
+library(pgirmess)
+library(car)
+
+1. State the ANOVA assumptions, mathematically. Then, explain what it means.
+
+The ANOVA assumptions are normality and constant variance assumptions. Normality could be assumed by using a histogram and a QQ plot. The histogram should look like a mound-shaped and be symmetric and it should be center at μ = 0. In the QQ plot, you should see the points distributed in a 45 degree line. If we assume normality, this means that the residual in each group follows a normal distribution.
+
+The scatter plot of residual vs predicted shows the relationship between the residuals and predicted values. In the scatter plot, we can assume constant variance if we see how tall the lines are and if they are all the same length. This means that the spread of residuals are about the same in each group.
+
+Recall the data from last lab: An agricultural researcher investigated two new herbicides and their effects on crop yields of tomatoes, which can be demolished by the tomato hornworm in mere hours. There were three areas for the experiment: an area for herbicide A, an area for herbicide B, and an area for no herbicide at all (control). At the end of the growing season, the yields (in bushels per acre) were measured and are available in the following Google Sheet.
+data <- as_tibble(gsheet2tbl("https://docs.google.com/spreadsheets/d/1CFyuuWy-4YmVU3wkYuC8Uf3xW3qkpCnpF468NjBAhbY/edit#gid=0"))
+
+2a. From last lab: Use the appropriate parametric test to show that there is a difference in the average yield between the three groups. Test at the 
+ level. Remember to typeset your results.
+
+long <- data %>%
+pivot_longer(cols = c("Herbicide1", "Herbicide2", "Control"),
+names_to = "Groups",
+values_to = "Cropyields")
+
+m1 <- aov(Cropyields~Groups,data=long)
+summary(m1)
+
+            Df Sum Sq Mean Sq F value Pr(>F)  
+Groups       2    373  186.40   3.677 0.0293 *
+Residuals   87   4410   50.69                 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+Hypotheses
+
+
+H1: at least one is different
+
+Test Statistic and p-Value
+
+
+
+Rejection Region
+
+Reject 
+ if (p = 0.0293) < α; α = 0.05
+
+Conclusion/Interpretation
+
+Reject 
+ at the 
+ level. There is sufficient evidence to suggest that there is a difference in the average yield between the three groups.
+
+2b. From last lab: Use the appropriate posthoc test (following question 2a, above) to perform all pairwise comparisons of yield. Test at the 
+ level. Remember to state the final conclusion (i.e., the pairwise differences).
+
+round((TukeyHSD(m1)$Groups),3)
+
+                        diff    lwr   upr p adj
+Herbicide1-Control    -2.147 -6.530 2.237 0.476
+Herbicide2-Control     2.823 -1.560 7.207 0.279
+Herbicide2-Herbicide1  4.970  0.587 9.353 0.022
+There is a difference between the groups, Herbicide 1 and Herbicide 2 (p=0.022).
+
+3. Use the appropriate nonparametric test to determine if there is a difference in the average yield between the three groups. Test at the 
+ level. Remember to typeset your results.
+
+kruskal.test(Cropyields ~ Groups,
+data = long)
+
+
+    Kruskal-Wallis rank sum test
+
+data:  Cropyields by Groups
+Kruskal-Wallis chi-squared = 8.6303, df = 2, p-value = 0.01336
+Hypotheses
+
+
+H1: at least one is different
+
+Test Statistic and p-Value
+
+
+
+Rejection Region
+
+Reject 
+ if p = 0.01336 < α; α = 0.05
+
+Conclusion/Interpretation
+
+Reject 
+ at the 
+ level. There is sufficient evidence to suggest that there is a difference in the average yield between the three groups.
+
+3. Use the appropriate nonparametric posthoc test (following question 3, above) to perform all pairwise comparisons of yield. Test at the 
+ level. Remember to state the final conclusion (i.e., the pairwise differences).
+
+kruskalmc(Cropyields ~ Groups,
+data = long)
+
+Multiple comparison test after Kruskal-Wallis 
+p.value: 0.05 
+Comparisons
+                        obs.dif critical.dif difference
+Control-Herbicide1     8.316667     16.14828      FALSE
+Control-Herbicide2    11.416667     16.14828      FALSE
+Herbicide1-Herbicide2 19.733333     16.14828       TRUE
+Only Herbicide1 and Herbicide2 are significantly different.
+
+4. Assess the assumptions associated with the test used in question 2a. In your assessment, determine (and state!) if the parametric or nonparametric test should be reported.
+
+almost_sas <- function(aov.results){
+aov_residuals <- residuals(aov.results)
+par(mfrow=c(2,2))
+plot(aov.results, which=1)
+hist(aov_residuals)
+plot(aov.results, which=2)
+}
+
+almost_sas(m1)
+
+
+leveneTest(Cropyields ~ Groups,
+data = long, center = median)
+
+Levene's Test for Homogeneity of Variance (center = median)
+      Df F value  Pr(>F)  
+group  2  3.1703 0.04688 *
+      87                  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+
+We should report the nonparametric test since the variance assumption is broken (p=0.04688).
+
+5. Write a brief paragraph explaining your findings to the researcher, based on the test chosen in question 3. Which herbicide, if any, is recommended, and why?
+
+I used the Kruskal-Wallis test to determine if there is a difference in the herbicide. Yes there is a difference in herbicide 1 and herbicide 2, but the Kruskal-Wallis test doesn’t tell us which is more effective. The test also shows that two groups (herbicide 1 and herbicide 2) aren’t significantly different between the control group. Because of these findings, I will not recommend any of the herbicides.
